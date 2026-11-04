@@ -131,6 +131,7 @@ export class CortecsChatModel implements INodeType {
 					// The credential-test context has no modern HTTP helper. Use native
 					// fetch to fixed Cortecs URLs rather than n8n's deprecated request API.
 					const catalogResponse = await fetch(`${BASE_URL}/models`, {
+						headers,
 						signal: AbortSignal.timeout(30000),
 					});
 					if (!catalogResponse.ok)

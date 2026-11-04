@@ -82,6 +82,45 @@ test('model discovery gives recovery guidance without exposing raw request detai
 	}
 });
 
+test('credential testing selects a model available to the authenticated account', async () => {
+	const allowedModel = {
+		id: 'allowed-model',
+		input_modalities: ['text'],
+		output_modalities: ['text'],
+		pricing: { output_token: 1 },
+	};
+	const excludedModel = {
+		...allowedModel,
+		id: 'excluded-model',
+		pricing: { output_token: 0.01 },
+	};
+	const requestedModels = [];
+	const stub = mock.method(globalThis, 'fetch', async (url, options = {}) => {
+		const authenticated = options.headers?.Authorization === 'Bearer restricted-test-key';
+		if (url.endsWith('/models')) {
+			return new Response(
+				JSON.stringify({ data: authenticated ? [allowedModel] : [excludedModel, allowedModel] }),
+			);
+		}
+		assert.equal(url, 'https://api.cortecs.ai/v1/chat/completions');
+		const { model } = JSON.parse(options.body);
+		requestedModels.push(model);
+		return new Response('{}', {
+			status: authenticated && model === allowedModel.id ? 200 : 403,
+		});
+	});
+	try {
+		const result = await node.methods.credentialTest.cortecsApiTest.call(
+			{},
+			{ data: { apiKey: 'restricted-test-key' } },
+		);
+		assert.equal(result.status, 'OK');
+		assert.deepEqual(requestedModels, ['allowed-model']);
+	} finally {
+		stub.mock.restore();
+	}
+});
+
 test('credential testing gives status-specific guidance and handles timeouts safely', async () => {
 	const catalog = {
 		data: [{ id: 'text-model', input_modalities: ['text'], output_modalities: ['text'] }],
