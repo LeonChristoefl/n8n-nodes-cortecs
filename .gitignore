@@ -1,0 +1,6 @@
+node_modules/
+dist/
+local-n8n/
+*.tgz
+*.tsbuildinfo
+*.ndjson

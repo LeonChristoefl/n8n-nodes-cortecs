@@ -1,0 +1,62 @@
+{
+	"name": "n8n-nodes-cortecs",
+	"version": "0.1.0",
+	"description": "Use Cortecs chat models in n8n AI agents and chains",
+	"license": "MIT",
+	"homepage": "https://cortecs.ai",
+	"keywords": [
+		"n8n-community-node-package"
+	],
+	"author": {
+		"name": "Cortecs",
+		"email": "support@cortecs.ai"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/cortecs-ai/n8n-nodes-cortecs.git"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease",
+		"test": "npm run build && node tests/run.cjs",
+		"scan": "npm run build && node scripts/scan.mjs"
+	},
+	"files": [
+		"dist",
+		"examples"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/CortecsApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/CortecsChatModel/CortecsChatModel.node.js"
+		],
+		"aiNodeSdkVersion": 1
+	},
+	"devDependencies": {
+		"@n8n/ai-node-sdk": "0.35.5",
+		"@n8n/node-cli": "0.55.4",
+		"@n8n/scan-community-package": "0.41.1",
+		"@types/node": "^22.0.0",
+		"eslint": "9.32.0",
+		"n8n-workflow": "2.45.3",
+		"prettier": "3.6.2",
+		"release-it": "^21.1.0",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": {
+		"@n8n/ai-node-sdk": "*",
+		"n8n-workflow": "*"
+	},
+	"engines": {
+		"node": ">=22.16"
+	}
+}
