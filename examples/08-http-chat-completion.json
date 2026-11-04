@@ -1,0 +1,142 @@
+{
+  "name": "Cortecs HTTP test: Chat completion",
+  "nodes": [
+    {
+      "id": "setup-and-expected-result",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -280
+      ],
+      "parameters": {
+        "content": "## Chat completion\nIn Test Input, replace REPLACE_WITH_MODEL_ID with a text model ID from the catalog example. Execute and expect generated text and usage information. This makes a real paid inference request.\n\nSelect your Cortecs API credential on the HTTP Request node. Never paste the key into headers or workflow JSON.",
+        "width": 720,
+        "height": 240
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "test-input",
+      "name": "Test Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        40
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "modelId",
+              "name": "modelId",
+              "value": "REPLACE_WITH_MODEL_ID",
+              "type": "string"
+            },
+            {
+              "id": "prompt",
+              "name": "prompt",
+              "value": "Reply with exactly CORTECS_HTTP_OK and nothing else.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "cortecs-http-request",
+      "name": "Cortecs HTTP Request",
+      "type": "n8n-creds-base.cortecsApi",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        40
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "cortecsApi",
+        "method": "POST",
+        "url": "https://api.cortecs.ai/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $json.modelId, messages: [{ role: \"user\", content: $json.prompt }] }) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "extendsCredential": "cortecsApi"
+    },
+    {
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const { statusCode, body } = $input.first().json;\nconst text = body?.choices?.[0]?.message?.content;\nif (statusCode !== 200 || typeof text !== 'string' || !text.trim()) throw new Error('Expected HTTP 200 with generated text. Check the model ID and API response.');\nif (!text.includes('CORTECS_HTTP_OK')) throw new Error('Model replied but did not follow the prompt. Inspect the HTTP output.');\nreturn [{ json: { passed: true, statusCode, text, model: body.model, usage: body.usage ?? null } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Test Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Input": {
+      "main": [
+        [
+          {
+            "node": "Cortecs HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

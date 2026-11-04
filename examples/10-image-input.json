@@ -1,0 +1,166 @@
+{
+  "name": "Cortecs test: Image understanding",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -360
+      ],
+      "parameters": {
+        "content": "## Image understanding\nSelect your Cortecs credential and a model that supports IMAGE INPUT and TEXT OUTPUT. The (Tools) label does not mean vision support.\n\nExecute the workflow. The model receives a public dog photo plus your prompt. Expect a description of a white dog outdoors. The final node checks only for a non-empty reply; inspect accuracy yourself.\n\nEdit imageUrl and prompt in Test Input to try other images. The URL must be directly accessible to the provider without login. This is image understanding, not image generation. Requests may incur charges.\n\nInstalled package: n8n-nodes-cortecs.cortecsChatModel.",
+        "height": 340,
+        "width": 760
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "describe-image",
+      "name": "Describe Image",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        500,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageUrl",
+              "imageUrl": "={{ $json.imageUrl }}",
+              "imageDetail": "auto"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cortecs-chat-model",
+      "name": "Cortecs Chat Model",
+      "type": "n8n-nodes-cortecs.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        500,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "check-image-reply",
+      "name": "Check Image Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const text = String($input.first().json.text ?? '').trim();\nif (!text) throw new Error('Expected an image description. Check that the model supports image input and that the image URL is accessible.');\nreturn [{ json: { responseReceived: true, description: text, manualCheck: 'For the default image, verify that the reply describes a white dog outdoors. A non-empty reply alone does not prove image understanding.' } }];"
+      }
+    },
+    {
+      "id": "test-input",
+      "name": "Test Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        40
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "image-url",
+              "name": "imageUrl",
+              "type": "string",
+              "value": "https://raw.githubusercontent.com/pytorch/hub/master/images/dog.jpg"
+            },
+            {
+              "id": "prompt",
+              "name": "prompt",
+              "type": "string",
+              "value": "Describe the animal in this image, its color, and its surroundings in two sentences. Base your answer on what you can see."
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Test Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Input": {
+      "main": [
+        [
+          {
+            "node": "Describe Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Describe Image": {
+      "main": [
+        [
+          {
+            "node": "Check Image Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Describe Image",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

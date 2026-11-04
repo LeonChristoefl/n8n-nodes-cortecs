@@ -1,0 +1,145 @@
+{
+  "name": "Cortecs test: Classify three items",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "content": "## Classify three items\nThree input items produce three model requests, one at a time. Expected labels in order: positive, negative, neutral. Prompts use each input item; the model ID stays constant because model sub-node expressions may resolve against the first item.\n\nFor the installed Cortecs package. Set your credential and model on every Cortecs node. Real requests may incur charges.",
+        "height": 250,
+        "width": 680
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "sample-reviews",
+      "name": "Sample Reviews",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return ['I love this product!', 'This product is awful.', 'The package arrived on Tuesday.'].map(review => ({ json: { review } }));"
+      }
+    },
+    {
+      "id": "classify-each-review",
+      "name": "Classify Each Review",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        500,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Classify sentiment as exactly positive, negative, or neutral. Output only the label. Review: ' + $json.review }}",
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 0
+        }
+      }
+    },
+    {
+      "id": "cortecs-chat-model",
+      "name": "Cortecs Chat Model",
+      "type": "n8n-nodes-cortecs.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        500,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "check-three-results",
+      "name": "Check Three Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const rows = $input.all();\nconst expected = ['positive', 'negative', 'neutral'];\nif (rows.length !== 3) throw new Error('Expected three outputs.');\nreturn rows.map((row, i) => {\n const actual = String(row.json.text ?? '').trim().toLowerCase().replace(/[.!]$/g, '');\n if (actual !== expected[i]) throw new Error(`Item ${i + 1}: expected ${expected[i]}, received ${actual}`);\n return { json: { passed: true, sentiment: actual }, pairedItem: { item: i } };\n});"
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Sample Reviews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Reviews": {
+      "main": [
+        [
+          {
+            "node": "Classify Each Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify Each Review",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Each Review": {
+      "main": [
+        [
+          {
+            "node": "Check Three Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -3,14 +3,14 @@ import type { IAuthenticateGeneric, ICredentialType, INodeProperties } from 'n8n
 export class CortecsApi implements ICredentialType {
 	name = 'cortecsApi';
 	displayName = 'Cortecs API';
-	documentationUrl = 'https://docs.cortecs.ai/member-quickstart';
+	documentationUrl = 'https://docs.cortecs.ai/';
 	icon = {
 		light: 'file:../nodes/CortecsChatModel/cortecs.png',
 		dark: 'file:../nodes/CortecsChatModel/cortecs.png',
 	} as const;
 	httpRequestNode = {
 		name: 'Cortecs',
-		docsUrl: 'https://docs.cortecs.ai/api/api-compatibility',
+		docsUrl: 'https://docs.cortecs.ai/api',
 		apiBaseUrl: 'https://api.cortecs.ai/v1',
 	};
 	properties: INodeProperties[] = [

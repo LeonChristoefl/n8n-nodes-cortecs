@@ -1,0 +1,143 @@
+{
+  "name": "Cortecs test: Structured extraction",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "content": "## Structured extraction\nExtract a contact using the Structured Output Parser. Expect name Ada Lovelace, city Vienna, and tickets 3. The parser validates the schema; a final node checks the values. No native strict JSON mode is required.\n\nFor the installed Cortecs package. Set your credential and model on every Cortecs node. Real requests may incur charges.",
+        "height": 250,
+        "width": 680
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "extract-contact",
+      "name": "Extract Contact",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        320,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "Extract these facts: Ada Lovelace lives in Vienna and requests 3 tickets. Return only the requested structured contact.",
+        "hasOutputParser": true
+      }
+    },
+    {
+      "id": "cortecs-chat-model",
+      "name": "Cortecs Chat Model",
+      "type": "n8n-nodes-cortecs.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        320,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "contact-schema",
+      "name": "Contact Schema",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        520,
+        280
+      ],
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"city\": {\n      \"type\": \"string\"\n    },\n    \"tickets\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"city\",\n    \"tickets\"\n  ],\n  \"additionalProperties\": false\n}",
+        "autoFix": false
+      }
+    },
+    {
+      "id": "check-contact",
+      "name": "Check Contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const row = $input.first().json;\nconst value = row.output ?? row;\nif (value.name !== 'Ada Lovelace' || value.city !== 'Vienna' || value.tickets !== 3) throw new Error('Unexpected contact values; inspect Extract Contact.');\nreturn [{ json: { passed: true, contact: value } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Extract Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract Contact",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Schema": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Extract Contact",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Contact": {
+      "main": [
+        [
+          {
+            "node": "Check Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

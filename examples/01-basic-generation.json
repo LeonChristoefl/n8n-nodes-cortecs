@@ -1,0 +1,116 @@
+{
+  "name": "Cortecs test: Basic generation",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "content": "## Basic generation\nExecute the workflow. Expect one item whose text contains CORTECS_OK. This checks authentication, model selection, and plain text generation.\n\nFor the installed Cortecs package. Set your credential and model on every Cortecs node. Real requests may incur charges.",
+        "height": 250,
+        "width": 680
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "generate-a-reply",
+      "name": "Generate a Reply",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        320,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "Reply with exactly CORTECS_OK and nothing else."
+      }
+    },
+    {
+      "id": "cortecs-chat-model",
+      "name": "Cortecs Chat Model",
+      "type": "n8n-nodes-cortecs.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        320,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "check-reply",
+      "name": "Check Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const text = String($input.first().json.text ?? '').trim();\nif (!text.includes('CORTECS_OK')) throw new Error('Expected CORTECS_OK; inspect the model response.');\nreturn [{ json: { passed: true, text } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Generate a Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate a Reply",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate a Reply": {
+      "main": [
+        [
+          {
+            "node": "Check Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

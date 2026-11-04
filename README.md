@@ -1,67 +1,111 @@
 # n8n-nodes-cortecs
 
-One Cortecs Chat Model node for n8n AI agents and chains, built with the official n8n AI Node SDK.
+Use [Cortecs](https://cortecs.ai) chat models in n8n AI Agents and LLM Chains.
 
-## Local development
+This community package provides a **Cortecs Chat Model** sub-node and a shared **Cortecs API** credential. You can also use the credential with n8n's HTTP Request node to call other Cortecs API endpoints.
 
-Use Node.js 22.16 or newer and npm. The package uses SDK 0.35.5 for development; the n8n host must provide AI Node SDK API version 1 and `n8n-workflow`.
+## Installation
+
+On a self-hosted n8n instance, an owner or administrator can install the package:
+
+1. Open **Settings → Community Nodes → Install**.
+2. Enter `n8n-nodes-cortecs`.
+3. Review the installation notice and select **Install**.
+
+See [n8n's community node installation guide](https://docs.n8n.io/integrations/community-nodes/installation-and-management/gui-installation.md) for details. Availability in n8n Cloud depends on n8n verification and your instance's community-node settings.
+
+Your n8n instance must provide **AI Node SDK API version 1** and `n8n-workflow`. Local loading has been checked with n8n **2.45.7**; compatibility with every n8n version is not guaranteed.
+
+## Credentials
+
+Create an API key in your [Cortecs account](https://cortecs.ai), then create a **Cortecs API** credential in n8n and enter the key in **API Key**.
+
+
+## Quick start
+
+1. Add an **AI Agent** or **Basic LLM Chain** to your workflow.
+2. Attach **Cortecs Chat Model** to its **Chat Model** connector.
+3. Select your **Cortecs API** credential.
+4. Choose a model from **From List**, or select **By ID** and enter an exact Cortecs model ID.
+5. Configure the prompt in the parent agent or chain and execute the workflow.
+
+For agents using tools, choose a model labeled **(Tools)**. Prompts, tools, and conversation memory are configured on the parent agent or chain.
+
+To get started with an existing workflow, import [Basic chain](examples/basic-chain.json) using **Import from File**, then select your credential and model.
+
+## Model options
+
+| Option | Description |
+| --- | --- |
+| **Model** | Search the Cortecs catalog or enter a model ID. The list includes models supporting text input and text output. |
+| **Temperature** | Optional sampling temperature between 0 and 2. Supported values depend on the selected model. |
+| **Maximum Output Tokens** | Optional positive integer limiting the generated output. Model limits vary. |
+
+Leave options out of the **Options** collection to preserve provider defaults.
+
+Text generation, streaming, and tool calls use Cortecs' OpenAI-compatible Chat Completions API at `https://api.cortecs.ai/v1`. Supported features depend on the selected model.
+
+
+## Cortecs HTTP Request
+
+Add **Cortecs HTTP Request** from the node picker and select your **Cortecs API** credential. Set the HTTP method, endpoint URL, and request body as required by the [Cortecs API documentation](https://docs.cortecs.ai/api). n8n adds Bearer authentication using your saved credential.
+
+The **Cortecs docs** link in the notice inside the node opens the API reference. The general **Docs** link in the node header may open n8n's HTTP Request documentation.
+
+## Example workflows
+
+These workflows are included in the npm package. Import each JSON file into a separate workflow using **Import from File**. Select your credential and model on every Cortecs model node before running. HTTP examples require a credential on the HTTP Request node; the chat-completion example also requires a model ID in **Test Input**.
+
+| Example | Demonstrates |
+| --- | --- |
+| [Basic chain](examples/basic-chain.json) | A minimal prompt and response. |
+| [01 Basic generation](examples/01-basic-generation.json) | Generate a reply and check the expected text. |
+| [02 Structured extraction](examples/02-structured-extraction.json) | Extract contact details with a Structured Output Parser and check the values. |
+| [03 Sequential chains](examples/03-sequential-chains.json) | Summarize text, then pass the result to a translation chain. |
+| [04 Multiple items](examples/04-multiple-items.json) | Classify three reviews and check one output per input item. |
+| [05 Agent with Calculator](examples/05-agent-calculator.json) | Use a tool-capable model to call Calculator. |
+| [06 Chat, streaming, and memory](examples/06-chat-streaming-memory.json) | Chat interactively with streaming responses and session memory. |
+| [07 HTTP model catalog](examples/07-http-model-catalog.json) | Fetch available text models using HTTP Request. |
+| [08 HTTP chat completion](examples/08-http-chat-completion.json) | Send a chat request directly and inspect its text and usage information. |
+| [09 HTTP invalid model](examples/09-http-invalid-model.json) | Inspect an unsuccessful response for a nonexistent model ID. |
+| [10 Image input](examples/10-image-input.json) | Describe an image with a vision-capable model. |
+
+Each workflow includes setup notes and expected results. They contain no credentials. 
+
+## Troubleshooting and limitations
+
+- **Model list unavailable:** check connectivity and Cortecs service availability, or use **By ID** with a known model ID.
+- **Authentication or access rejected:** check your API key, account balance, permissions, and IP restrictions.
+- **Agent does not call tools:** select a tool-capable model and inspect the agent's intermediate steps. A correct final answer alone does not establish that a tool ran.
+- **Image request rejected:** check the selected model's image-input support and whether the image URL is accessible.
+- **Unexpected results across multiple input items:** n8n sub-node expressions may resolve against the first item. Keep the model configuration fixed and put item-specific prompts in the parent chain.
+
+
+## Development
+
+From a source checkout, use Node.js 22.16 or newer and a Node.js version supported by your n8n host. Install dependencies and run the checks:
 
 ```sh
 npm ci
-npm run lint
 npm test
+npm run lint
 npm run scan
+```
+
+The tests use a local fake API and require no Cortecs key. They cover configuration, credentials, model discovery, text generation, streaming, tool calls, and unsuccessful responses; they do not establish live provider compatibility.
+
+Start the development server with:
+
+```sh
 npm run dev -- --custom-user-folder "$(cd .. && pwd)/n8n-cortecs-local-data"
 ```
 
-The development command runs n8n at http://localhost:5678 with the node loaded. The first run may download n8n. Its local data directory is outside the package to avoid recursive development links.
+The editor runs at http://localhost:5678. The first run may download n8n.
 
-## Usage
+## Support
 
-1. Create a Cortecs API key in the [Cortecs console](https://cortecs.ai).
-2. Add an **AI Agent** or **Basic LLM Chain** to your workflow.
-3. Connect **Cortecs Chat Model** to its **Chat Model** connector.
-4. Create a **Cortecs API** credential and enter your API key.
-5. Select a model from the searchable list or choose **By ID** and enter an exact model ID.
-6. Run the workflow. Choose a model labeled **(Tools)** when using an AI Agent with tools.
+See the [Cortecs documentation](https://docs.cortecs.ai/) for model capabilities and API details. For support, contact [support@cortecs.ai](mailto:support@cortecs.ai).
 
-Optional settings are **Temperature** and **Maximum Output Tokens**. Omitting them preserves provider defaults. Support and limits vary by model.
+## License
 
-Credential testing sends a one-token chat request to an inexpensive available non-reasoning model and may incur a small charge. It verifies inference access as well as authentication; insufficient balance, IP restrictions, or provider outages can also make the test fail. Model discovery alone cannot validate a key because the catalog is public.
-
-For local development with `npm run dev`, import [the local example workflow](examples/basic-chain.local.json). The development loader registers the model as `CUSTOM.cortecsChatModel`.
-
-For an installed community package, import [the package example workflow](examples/basic-chain.json), which uses `n8n-nodes-cortecs.cortecsChatModel`. Select your credentials and a model, then execute the workflow. Neither example contains credentials. If n8n offers to install the package during local development, check that you imported the local example.
-
-## Supported behavior
-
-- Dynamic discovery of models with text input and text output; tool-capable models are labeled.
-- OpenAI-compatible Chat Completions at `https://api.cortecs.ai/v1`.
-- Text generation, streaming, and tool calls through the host SDK, subject to model capabilities.
-- One credential type and one model node. No bundled runtime dependencies.
-
-This is an AI model sub-node; prompts and conversation state belong to the parent agent or chain. n8n sub-node expressions follow n8n's sub-node evaluation behavior.
-
-## Validation
-
-```sh
-npm test
-npm run lint
-npm run scan
-```
-
-`npm test` builds the package and checks credentials, parameter validation, catalog filtering, SDK configuration, HTTP generation, SSE streaming, a tool-call round trip, and authentication/model errors against a local stand-in. These checks do not establish live Cortecs inference or full n8n workflow compatibility. Local startup and the package loader were additionally smoke-tested with n8n 2.45.7; both the node and credential loaded successfully.
-
-The local stand-in is a Node.js HTTP server in `tests/fixtures/cortecs-server.cjs`. The test runner starts and stops it automatically; no API key or additional testing tools are needed. It uses the public catalog shape observed on 2026-11-02 and synthetic Chat Completions fixtures. Live generation, streaming, tool use, and a manual AI Agent workflow remain release checks requiring a Cortecs credential.
-
-## Release preparation
-
-The package is local and unverified. Nothing has been committed, pushed, or published by this implementation.
-
-Before release, create the intended public repository and confirm `repository.url`, author email, package-name availability, host compatibility, and icon rendering. The repository URL in `package.json` is the proposed destination, not an existing verified repository.
-
-The local source and distribution scanner runs via `npm run scan`. Full registry/provenance verification still requires the published package. Configure npm trusted publishing for `.github/workflows/publish.yml`; the tag-triggered workflow runs checks and publishes with provenance. `npm run release` is the scaffolded release tool and can commit, tag, push, and publish: do not run it for local development.
-
-After publishing, submit through the [Creator Portal](https://creators.n8n.io/nodes). Approval is separate from package installation and publication.
-
-[Verification guidelines](https://docs.n8n.io/connect/create-nodes/build-your-node/reference/verification-guidelines.md) · [Cortecs API documentation](https://docs.cortecs.ai/api/api-compatibility)
+[MIT](LICENSE).

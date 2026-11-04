@@ -1,0 +1,99 @@
+{
+  "name": "Cortecs HTTP test: Model catalog",
+  "nodes": [
+    {
+      "id": "setup-and-expected-result",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -280
+      ],
+      "parameters": {
+        "content": "## Model catalog\nGET /models. Expect a successful HTTP response and a list of text-capable models. The catalog is public: success does NOT prove the API key is valid. Use the chat example to check authenticated inference.\n\nSelect your Cortecs API credential on the HTTP Request node. Never paste the key into headers or workflow JSON.",
+        "width": 720,
+        "height": 240
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "cortecs-http-request",
+      "name": "Cortecs HTTP Request",
+      "type": "n8n-creds-base.cortecsApi",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        40
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "cortecsApi",
+        "method": "GET",
+        "url": "https://api.cortecs.ai/v1/models",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "extendsCredential": "cortecsApi"
+    },
+    {
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const { statusCode, body } = $input.first().json;\nif (statusCode !== 200 || !Array.isArray(body?.data)) throw new Error('Expected HTTP 200 with a model catalog.');\nconst models = body.data.filter(m => m.input_modalities?.includes('text') && m.output_modalities?.includes('text')).map(m => ({ id: m.id, tools: m.supported_features?.includes('tools') ?? false }));\nif (!models.length) throw new Error('No text models found in the catalog.');\nreturn [{ json: { passed: true, statusCode, count: models.length, models } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Cortecs HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

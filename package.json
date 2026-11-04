@@ -28,7 +28,7 @@
 	},
 	"files": [
 		"dist",
-		"examples"
+		"examples/*.json"
 	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,

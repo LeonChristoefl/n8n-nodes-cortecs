@@ -1,0 +1,145 @@
+{
+  "name": "Cortecs test: Summarize then translate (local)",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "content": "## Summarize then translate\nTwo model requests in sequence. The second chain reads the first chain output using an expression. Expect a short German summary mentioning Friday. Configure both Cortecs model nodes.\n\nFor local dev only. Set your credential and model on every Cortecs node. Real requests may incur charges.",
+        "height": 250,
+        "width": 680
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "summarize",
+      "name": "Summarize",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        320,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "Summarize in one English sentence: The product launch moved from Monday to Friday. The team needs two extra days for quality checks. Existing customers will receive an email."
+      }
+    },
+    {
+      "id": "cortecs-summarizer",
+      "name": "Cortecs Summarizer",
+      "type": "CUSTOM.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        320,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "translate-to-german",
+      "name": "Translate to German",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        680,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Translate this summary into German. Return only the translation: ' + $json.text }}"
+      }
+    },
+    {
+      "id": "cortecs-translator",
+      "name": "Cortecs Translator",
+      "type": "CUSTOM.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        680,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Summarizer": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Translate to German",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Translator": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Translate to German",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

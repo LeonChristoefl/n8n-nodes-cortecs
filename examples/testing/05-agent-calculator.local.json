@@ -1,0 +1,118 @@
+{
+  "name": "Cortecs test: Agent with Calculator (local)",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "content": "## Agent with Calculator\nChoose a model labeled (Tools). Execute the workflow and expect 1605. Check the agent intermediate steps or Calculator execution to confirm an actual tool call: a correct number alone does not prove tool use.\n\nFor local dev only. Set your credential and model on every Cortecs node. Real requests may incur charges.",
+        "height": 250,
+        "width": 680
+      }
+    },
+    {
+      "id": "calculator-agent",
+      "name": "Calculator Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        40
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "Use the Calculator tool to evaluate (137 * 29) - (64 * 37). You must call the tool. Return the result after using the tool.",
+        "options": {
+          "maxIterations": 4,
+          "returnIntermediateSteps": true,
+          "enableStreaming": false
+        }
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "cortecs-chat-model",
+      "name": "Cortecs Chat Model",
+      "type": "CUSTOM.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        320,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "calculator",
+      "name": "Calculator",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        540,
+        280
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Calculator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calculator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calculator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

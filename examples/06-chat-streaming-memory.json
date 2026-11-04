@@ -1,0 +1,147 @@
+{
+  "name": "Cortecs test: Chat with streaming and memory",
+  "nodes": [
+    {
+      "id": "instructions",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "content": "## Chat with streaming and memory\nChoose a model labeled (Tools), save the workflow, then open the n8n test chat. Send: My project codename is ORCHID. In the SAME chat, ask: What is my project codename? Expect ORCHID and incremental replies. New chat sessions have separate memory; memory is for local testing. Calculator is available for a tool-call check.\n\nFor the installed Cortecs package. Set your credential and model on every Cortecs node. Real requests may incur charges.",
+        "height": 250,
+        "width": 680
+      }
+    },
+    {
+      "id": "chat-input",
+      "name": "Chat Input",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {
+        "public": false,
+        "options": {
+          "responseMode": "streaming"
+        }
+      }
+    },
+    {
+      "id": "chat-agent",
+      "name": "Chat Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        40
+      ],
+      "parameters": {
+        "promptType": "auto",
+        "options": {
+          "systemMessage": "You are a concise assistant. Remember facts provided in this conversation. Use Calculator when asked to calculate.",
+          "maxIterations": 4,
+          "enableStreaming": true
+        }
+      }
+    },
+    {
+      "id": "cortecs-chat-model",
+      "name": "Cortecs Chat Model",
+      "type": "n8n-nodes-cortecs.cortecsChatModel",
+      "typeVersion": 1,
+      "position": [
+        200,
+        280
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "conversation-memory",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        420,
+        280
+      ],
+      "parameters": {
+        "sessionIdType": "fromInput",
+        "contextWindowLength": 5
+      }
+    },
+    {
+      "id": "calculator",
+      "name": "Calculator",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        640,
+        280
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Chat Input": {
+      "main": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "Chat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

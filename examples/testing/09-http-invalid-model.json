@@ -1,0 +1,103 @@
+{
+  "name": "Cortecs HTTP test: Invalid model response",
+  "nodes": [
+    {
+      "id": "setup-and-expected-result",
+      "name": "Setup and Expected Result",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -280
+      ],
+      "parameters": {
+        "content": "## Invalid model response\nSends a deliberately nonexistent model ID. Never Error is enabled ONLY so the check node can inspect the rejected response. Expect HTTP 400 or 404. A 401/402/403 indicates an authentication/billing/access issue instead of the intended test.\n\nSelect your Cortecs API credential on the HTTP Request node. Never paste the key into headers or workflow JSON.",
+        "width": 720,
+        "height": 240
+      }
+    },
+    {
+      "id": "run-workflow",
+      "name": "Run Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "cortecs-http-request",
+      "name": "Cortecs HTTP Request",
+      "type": "n8n-creds-base.cortecsApi",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        40
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "cortecsApi",
+        "method": "POST",
+        "url": "https://api.cortecs.ai/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"model\":\"cortecs-deliberately-nonexistent-test-model\",\"messages\":[{\"role\":\"user\",\"content\":\"Hi\"}],\"max_tokens\":1}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "extendsCredential": "cortecsApi"
+    },
+    {
+      "id": "check-response",
+      "name": "Check Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const { statusCode, body } = $input.first().json;\nif (![400, 404].includes(statusCode)) throw new Error('Expected HTTP 400 or 404 for an unknown model; received ' + statusCode + '. Check credentials, balance, and service availability.');\nreturn [{ json: { passed: true, statusCode, response: body } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Run Workflow": {
+      "main": [
+        [
+          {
+            "node": "Cortecs HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cortecs HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Check Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
