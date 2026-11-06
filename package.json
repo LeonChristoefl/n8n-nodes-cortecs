@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-cortecs",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "Use Cortecs chat models in n8n AI agents and chains",
 	"license": "MIT",
 	"homepage": "https://cortecs.ai",

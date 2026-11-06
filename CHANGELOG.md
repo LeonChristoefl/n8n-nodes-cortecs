@@ -1,5 +1,5 @@
 # Changelog
 
-## 0.1.0
+## 1.0.0
 
-Initial local implementation of the Cortecs Chat Model community node.
+Initial public release of the Cortecs Chat Model community node.
