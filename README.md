@@ -6,20 +6,23 @@ This community package provides a **Cortecs Chat Model** sub-node and a shared *
 
 ## Installation
 
-On a self-hosted n8n instance, an owner or administrator can install the package:
+Install on self-hosted n8n using the steps below. Availability on n8n Cloud requires verification by n8n.
+
+An owner or administrator can install the package:
 
 1. Open **Settings → Community Nodes → Install**.
 2. Enter `n8n-nodes-cortecs`.
 3. Review the installation notice and select **Install**.
 
-See [n8n's community node installation guide](https://docs.n8n.io/integrations/community-nodes/installation-and-management/gui-installation.md) for details. Availability in n8n Cloud depends on n8n verification and your instance's community-node settings.
+See [n8n's community node installation guide](https://docs.n8n.io/integrations/community-nodes/installation-and-management/gui-installation.md) for details.
 
-Your n8n instance must provide **AI Node SDK API version 1** and `n8n-workflow`. Local loading has been checked with n8n **2.45.7**; compatibility with every n8n version is not guaranteed.
+Tested for local loading with n8n **2.45.7**. Your instance must support **AI Node SDK API version 1**; older n8n versions may require an upgrade.
 
 ## Credentials
 
 Create an API key in your [Cortecs account](https://cortecs.ai), then create a **Cortecs API** credential in n8n and enter the key in **API Key**.
 
+Testing the credential sends a one-token chat request to Cortecs and may incur a small charge. Workflow executions also use your Cortecs account and may incur charges.
 
 ## Quick start
 
@@ -31,7 +34,7 @@ Create an API key in your [Cortecs account](https://cortecs.ai), then create a *
 
 For agents using tools, choose a model labeled **(Tools)**. Prompts, tools, and conversation memory are configured on the parent agent or chain.
 
-To get started with an existing workflow, import [Basic chain](examples/basic-chain.json) using **Import from File**, then select your credential and model.
+To get started with an existing workflow, download [Basic chain](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/basic-chain.json) using GitHub's **Download raw file** button. Import the JSON into n8n using **Import from File**, then select your credential and model.
 
 ## Model options
 
@@ -45,32 +48,31 @@ Leave options out of the **Options** collection to preserve provider defaults.
 
 Text generation, streaming, and tool calls use Cortecs' OpenAI-compatible Chat Completions API at `https://api.cortecs.ai/v1`. Supported features depend on the selected model.
 
-
 ## Cortecs HTTP Request
 
 Add **Cortecs HTTP Request** from the node picker and select your **Cortecs API** credential. Set the HTTP method, endpoint URL, and request body as required by the [Cortecs API documentation](https://docs.cortecs.ai/api). n8n adds Bearer authentication using your saved credential.
 
-The **Cortecs docs** link in the notice inside the node opens the API reference. The general **Docs** link in the node header may open n8n's HTTP Request documentation.
-
 ## Example workflows
 
-These workflows are included in the npm package. Import each JSON file into a separate workflow using **Import from File**. Select your credential and model on every Cortecs model node before running. HTTP examples require a credential on the HTTP Request node; the chat-completion example also requires a model ID in **Test Input**.
+Download an example from GitHub using **Download raw file**, then import the JSON into a separate n8n workflow using **Import from File**. These examples are also included in the npm package.
+
+Select your credential and model on every Cortecs model node before running. HTTP examples require a credential on the HTTP Request node; the chat-completion example also requires a model ID in **Test Input**.
 
 | Example | Demonstrates |
 | --- | --- |
-| [Basic chain](examples/basic-chain.json) | A minimal prompt and response. |
-| [01 Basic generation](examples/01-basic-generation.json) | Generate a reply and check the expected text. |
-| [02 Structured extraction](examples/02-structured-extraction.json) | Extract contact details with a Structured Output Parser and check the values. |
-| [03 Sequential chains](examples/03-sequential-chains.json) | Summarize text, then pass the result to a translation chain. |
-| [04 Multiple items](examples/04-multiple-items.json) | Classify three reviews and check one output per input item. |
-| [05 Agent with Calculator](examples/05-agent-calculator.json) | Use a tool-capable model to call Calculator. |
-| [06 Chat, streaming, and memory](examples/06-chat-streaming-memory.json) | Chat interactively with streaming responses and session memory. |
-| [07 HTTP model catalog](examples/07-http-model-catalog.json) | Fetch available text models using HTTP Request. |
-| [08 HTTP chat completion](examples/08-http-chat-completion.json) | Send a chat request directly and inspect its text and usage information. |
-| [09 HTTP invalid model](examples/09-http-invalid-model.json) | Inspect an unsuccessful response for a nonexistent model ID. |
-| [10 Image input](examples/10-image-input.json) | Describe an image with a vision-capable model. |
+| [Basic chain](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/basic-chain.json) | A minimal prompt and response. |
+| [01 Basic generation](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/01-basic-generation.json) | Generate a reply and check the expected text. |
+| [02 Structured extraction](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/02-structured-extraction.json) | Extract contact details with a Structured Output Parser and check the values. |
+| [03 Sequential chains](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/03-sequential-chains.json) | Summarize text, then pass the result to a translation chain. |
+| [04 Multiple items](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/04-multiple-items.json) | Classify three reviews and check one output per input item. |
+| [05 Agent with Calculator](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/05-agent-calculator.json) | Use a tool-capable model to call Calculator. |
+| [06 Chat, streaming, and memory](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/06-chat-streaming-memory.json) | Chat interactively with streaming responses and session memory. |
+| [07 HTTP model catalog](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/07-http-model-catalog.json) | Fetch available text models using HTTP Request. |
+| [08 HTTP chat completion](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/08-http-chat-completion.json) | Send a chat request directly and inspect its text and usage information. |
+| [09 HTTP invalid model](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/09-http-invalid-model.json) | Inspect an unsuccessful response for a nonexistent model ID. |
+| [10 Image input](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/examples/10-image-input.json) | Describe an image with a vision-capable model. |
 
-Each workflow includes setup notes and expected results. They contain no credentials. 
+Each workflow includes setup notes and expected results. They contain no credentials.
 
 ## Troubleshooting and limitations
 
@@ -79,7 +81,6 @@ Each workflow includes setup notes and expected results. They contain no credent
 - **Agent does not call tools:** select a tool-capable model and inspect the agent's intermediate steps. A correct final answer alone does not establish that a tool ran.
 - **Image request rejected:** check the selected model's image-input support and whether the image URL is accessible.
 - **Unexpected results across multiple input items:** n8n sub-node expressions may resolve against the first item. Keep the model configuration fixed and put item-specific prompts in the parent chain.
-
 
 ## Development
 
@@ -97,7 +98,7 @@ The tests use a local fake API and require no Cortecs key. They cover configurat
 Start the development server with:
 
 ```sh
-npm run dev -- --custom-user-folder "$(cd .. && pwd)/n8n-cortecs-local-data"
+npm run dev
 ```
 
 The editor runs at http://localhost:5678. The first run may download n8n.
@@ -108,4 +109,4 @@ See the [Cortecs documentation](https://docs.cortecs.ai/) for model capabilities
 
 ## License
 
-[MIT](LICENSE).
+[MIT](https://github.com/cortecs-ai/n8n-nodes-cortecs/blob/main/LICENSE).
