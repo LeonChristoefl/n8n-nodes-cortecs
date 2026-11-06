@@ -3,6 +3,9 @@
 	"version": "1.0.0",
 	"description": "Use Cortecs chat models in n8n AI agents and chains",
 	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
 	"homepage": "https://cortecs.ai",
 	"keywords": [
 		"n8n-community-node-package"
